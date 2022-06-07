@@ -1,0 +1,8 @@
+https://github.com/mitsuhiko/flask-oauth/archive/refs/heads/master.zip
+Django
+requests
+openid_connect
+django_auth_oidc
+django_environ
+django_semantic_admin
+pexpect

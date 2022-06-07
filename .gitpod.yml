@@ -1,0 +1,12 @@
+image: gitpod/workspace-python-3.9
+tasks:
+  - name: Install and update dependencies
+    command: |
+      sudo apt-get update && sudo apt-get -y upgrade
+      sudo apt -y install openssh-server
+      pip3 install -r requirements.txt
+      python3 manage.py migrate
+  
+  - name: Server
+    command: |
+      python3 manage.py runserver 0.0.0.0:8080
