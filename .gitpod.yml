@@ -4,9 +4,15 @@ tasks:
     command: |
       sudo apt-get update && sudo apt-get -y upgrade
       sudo apt -y install openssh-server
+      
       pip3 install -r requirements.txt
       python3 manage.py migrate
   
   - name: Server
     command: |
+      pip3 install -r requirements.txt
       python3 manage.py runserver 0.0.0.0:8080
+
+vscode:
+  extensions:
+  - https://github.com/Huachao/vscode-restclient/releases/download/v0.24.6/rest-client-0.24.6.vsix
