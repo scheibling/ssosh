@@ -4,8 +4,10 @@ requests
 mozilla_django_oidc
 django_auth_oidc
 django_environ
-django_semantic_admin
+# django_semantic_admin
+django-jazzmin
 sshkey_tools
 asyncssh
 pexpect
 pyjwt
+authlib

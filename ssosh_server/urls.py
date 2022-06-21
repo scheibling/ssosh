@@ -23,6 +23,21 @@ admin.site.name = "SSO Shell"
 admin.site.site_header = "Administration"
 admin.site.index_title = "Administration"
 
+# Host bootstrap flow
+# 1. Request to /host/bootstrap/HOSTNAME01 or /host/bootstrap/HOSTNAME01/{id}
+# 2. If ID is provided and correct, goto 5.
+# 3. Return /auth/init url for user to login (admin)
+# 4. Await loop /host/callback
+# 5. When user done, /host/callback returns ID, CA, Principals
+# 6. Save to config on host, restart sshd
+
+# Client auth flow
+# 1. Request to /ssh_ca/auth/
+# 2. Return URl to /auth/init for user login
+# 3. Await loop /auth/callback
+# 4. When user done, /auth/callback returns certificate
+
+
 urlpatterns = [
     # # / -> empty page
     path('', ssosh_views.IndexView),
@@ -36,16 +51,18 @@ urlpatterns = [
     re_path('^admin/', admin.site.urls),
     
     # # /auth/* -> ssosh_server.oidc_client
-    # re_path(r'^oidc/', include('ssosh_server.oidc_client.urls')),
+    re_path(r'^oidc/', include('ssosh_server.oidc_client.urls')),
+    
+    # # /auth/* -> ssosh_server.oidc_client
+    re_path(r'^auth/', include('ssosh_server.device_auth.urls')),
     
     # # /host/* -> ssosh_server.hosts
     # re_path(r'hosts/', include('ssosh_server.hosts.urls'), name='hosts'),
     
     # # /device/* -> ssosh_server.device
-    # re_path(r'^device/', include('ssosh_server.device.urls')),
+    # re_path(r'^device/', include('ssosh_server.device.urls')), 
     
     # # /host/* -> ssosh_server.host
-    
     
     # # /client/* -> ssosh_server.client
     # re_path(r'^client/', include('ssosh_server.client.urls'))

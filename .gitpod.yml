@@ -6,12 +6,12 @@ tasks:
       sudo apt -y install openssh-server
       
       pip3 install -r requirements.txt
+      python3 manage.py makemigrations
       python3 manage.py migrate
   
   - name: Server
     command: |
-      pip3 install -r requirements.txt
-      python3 manage.py runserver 0.0.0.0:8080
+      source .venv/bin/activate
 
 vscode:
   extensions:

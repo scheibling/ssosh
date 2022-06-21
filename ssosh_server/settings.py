@@ -18,13 +18,14 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-LOGIN_REDIRECT_URL = '/success'
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+LOGIN_REDIRECT_URL = '/success'
+
+DEBUG = env('DEBUG', default=False)
+BASE_URL = env('BASE_URL', default='http://localhost:8000')
 # X_FORWARDED_PROTO read for rProxy support
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -66,18 +67,31 @@ SSH_CA_CERT_SUBJECT_OIDC = env('SSH_CA_CERT_SUBJECT_OIDC', default='sub')
 SSH_CA_CERT_SUBJECT_SAML = env('SSH_CA_CERT_SUBJECT_SAML', default='samaccountname')
 SSH_CA_CERT_SUBJECT_BUILTIN = env('SSH_CA_CERT_SUBJECT_BUILTIN', default='username')
 
+JAZZMIN_SETTINGS = {
+    "site_title": "SSO Shell",
+    "site_header": "SSO Shell",
+    "site_brand": "SSO Shell",
+    "changeform_format": "collapsible"
+}
 # Application definition
-
+# AUTH_USER_MODEL = 'interface.User'
 INSTALLED_APPS = [
+    # 'jet',
+    #'bootstrap_admin',
+    # 'django-material',
+    # 'django-suit',
+    # 'django-baton',
+    # 
     # 'admin_volt.apps.AdminVoltConfig', Looks good, needs some configuration https://github.com/app-generator/django-admin-volt
-    'semantic_admin', #Looks really good, no configuration almost https://globophobe.github.io/django-semantic-admin/
-    # 'jazzmin', # Better overview except for tabbed settings pages, no configuration https://github.com/farridav/django-jazzmin
+    # 'semantic_admin', #Looks really good, no configuration almost https://globophobe.github.io/django-semantic-admin/
+    'jazzmin', # Better overview except for tabbed settings pages, no configuration https://github.com/farridav/django-jazzmin
     'ssosh_server.oidc_client',
     'ssosh_server.interface',
     'ssosh_server.hosts',
+    'ssosh_server.device_auth',
+    # 'ssosh_server.authority',
     # 'ssosh_server.device_auth',
     # 'ssosh_server.ssh_ca',
-    # 'ssosh_server.host',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -165,7 +179,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'ssosh_server', 'static')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 

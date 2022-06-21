@@ -1,74 +1,81 @@
-{% extends "admin/portal.html" %}
-{% load i18n static %}
+{% extends "registration/base.html" %}
+{% load i18n jazzmin %}
 {% load oidc_client %}
 
-{% block title %}{% trans "Login" %} | {{ site_title|default:_('Django site admin') }}{% endblock %}
-
-{% block extrastyle %}
-{{ block.super }}
-{{ form.media }}
-{% endblock %}
-
-{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% get_jazzmin_settings request as jazzmin_settings %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
 
 {% block content %}
-<div style="padding-top: 3.5rem;" class="ui container">
-<div class="ui centered card" style="min-width: 25rem;">
-  <div style="background: #f3f4f5;" class="content">
-    <div class="header">{% trans 'Log in' %}</div>
-  </div>
-  <div class="content">
-    {% if form.errors and not form.non_field_errors %}
-    <p class="errornote">
-    {% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
-    </p>
-    {% endif %}
-
-    {% if form.non_field_errors %}
-    {% for error in form.non_field_errors %}
-    <p class="errornote">
-        {{ error }}
-    </p>
-    {% endfor %}
-    {% endif %}
-
-    <div id="content-main">
-
-    {% if user.is_authenticated %}
-    <p class="errornote">
-    {% blocktrans trimmed %}
-        You are authenticated as {{ username }}, but are not authorized to
-        access this page. Would you like to login to a different account?
-    {% endblocktrans %}
-    </p>
-    {% endif %}
-
-    <form class="ui form" action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
-      <div class="field">
-        {{ form.username.errors }}
-        {{ form.username.label_tag }} {{ form.username }}
-      </div>
-      <div class="field">
-        {{ form.password.errors }}
-        {{ form.password.label_tag }} {{ form.password }}
-        <input type="hidden" name="next" value="{{ next }}" />
-      </div>
-      {% url 'admin_password_reset' as password_reset_url %}
-      {% if password_reset_url %}
-      <div class="password-reset-link" style="margin-bottom: 1rem;">
-        <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
-      </div>
-      {% endif %}
-      <div class="submit-row">
-        <label>&nbsp;</label><input class="ui primary button" type="submit" value="{% trans 'Log in' %}" />
-      </div>
-      <div class="submit-row" style="margin-top: 5px;">
-        <a href="{{ request | get_auth_uri }}"><label>&nbsp;</label><input class="ui green button" type="button" value="{% trans 'OpenID Connect' %}" /></a>
-      </div>
+    <p class="login-box-msg">{{ jazzmin_settings.welcome_sign }}</p>
+    <form action="{{ app_path }}" method="post">
+        {% csrf_token %}
+        {% if user.is_authenticated %}
+            <p class="errornote">
+                <div class="callout callout-danger">
+                    <p>
+                        {% blocktrans trimmed %}
+                            You are authenticated as {{ username }}, but are not authorized to
+                            access this page. Would you like to login to a different account?
+                        {% endblocktrans %}
+                    </p>
+                </div>
+            </p>
+        {% endif %}
+        {% if form.errors %}
+            {% if form.username.errors %}
+                <div class="callout callout-danger">
+                    <p>{{ form.username.label }}: {{ form.username.errors|join:', ' }}</p>
+                </div>
+            {% endif %}
+            {% if form.password.errors %}
+                <div class="callout callout-danger">
+                    <p>{{ form.password.label }}: {{ form.password.errors|join:', ' }}</p>
+                </div>
+            {% endif %}
+            {% if form.non_field_errors %}
+                <div class="callout callout-danger">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+        <div class="input-group mb-3">
+            <input type="text" name="username" class="form-control" placeholder="{{ form.username.label }}" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-user"></span>
+                </div>
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <input type="password" name="password" class="form-control" placeholder="{{ form.password.label }}" required>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-lock"></span>
+                </div>
+            </div>
+        </div>
+        {% url 'admin_password_reset' as password_reset_url %}
+        {% if password_reset_url %}
+            <div class="mb-3">
+                <div class="password-reset-link" style="text-align: center;">
+                    <a href="{{ password_reset_url }}">
+                        {% trans 'Forgotten your password or username?' %}
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn {{ jazzmin_ui.button_classes.primary }} btn-block">
+                    {% trans "Log in" %}
+                </button>
+                <a href="{{ request | get_auth_uri }}">
+                    <button type="submit" class="btn {{ jazzmin_ui.button_classes.primary }} btn-block mt-2">
+                        OpenID Connect
+                    </button>
+                </a>
+        </div>
     </form>
-
-    </div>
-  </div>
-</div>
-</div>
 {% endblock %}

@@ -1,18 +1,7 @@
 from django.db import models
+from django.db.models.manager import EmptyManager
 from uuid import uuid4 as gen_uuid
 from django.contrib.auth.models import User, Group
-
-class UUIDPrimaryKeyField(models.CharField):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('max_length', None)
-        kwargs.pop('primary_key', None)
-        super(UUIDPrimaryKeyField, self).__init__(
-            *args, 
-            primary_key=True,
-            max_length=36,
-            default=str(gen_uuid()),
-            **kwargs
-        )
 
 # Ensure all hostnames are stored in upper case
 class UpperCaseCharField(models.CharField):
@@ -29,63 +18,34 @@ class UpperCaseCharField(models.CharField):
             return super(UpperCaseCharField, self).pre_save(model_instance, add)
 
 class Host(models.Model):
-    id = UUIDPrimaryKeyField()
+    id = models.UUIDField(primary_key=True, default=gen_uuid, editable=False)
     hostname = UpperCaseCharField(max_length=255)
     key = models.CharField(max_length=100,default=str(gen_uuid()))
+    hostgrouplink = models.ManyToManyField("Hostgroup", 'host_hostgroup_link', verbose_name="Hostgroups", blank=True)
+    userlink = models.ManyToManyField(User, 'host_user_link', verbose_name="Users", blank=True)
+    grouplink = models.ManyToManyField(Group, 'host_group_link', verbose_name="Groups", blank=True)
     
+    class Meta:
+        verbose_name = "Host"
+        # The space is used for quick and dirty sorting in the admin sidebar
+        # It is not rendered in the UI
+        verbose_name_plural = " Hosts"
+
     def __str__(self):
-        return self.hostname
-    
+        return str(self.hostname)
+
+
 class Hostgroup(models.Model):
-    id = UUIDPrimaryKeyField()
+    id = models.UUIDField(primary_key=True, default=gen_uuid, editable=False)
     name = models.CharField(max_length=255)
-    slug = models.CharField(
-        max_length=255,
-        blank=False,
-        null=False,
-        unique=True
-    )
-    
+    slug = models.SlugField(max_length=128, unique=True, blank=False, null=False, verbose_name="Slug (a-zA-Z0-9\-\_)")
+    hostlink = models.ManyToManyField(Host, 'hostgroup_host_link', verbose_name="Hosts", through="Host_hostgrouplink", blank=True)
+    userlink = models.ManyToManyField(User, 'hostgroup_user_link', verbose_name="Users", blank=True)
+    grouplink = models.ManyToManyField(Group, 'hostgroup_group_link', verbose_name="Groups", blank=True)
+
+    class Meta:
+        verbose_name = "Hostgroup"
+        verbose_name_plural = "Hostgroups"
+
     def __str__(self):
-        return self.name
-    
-class LnkHostToHostgroup(models.Model):
-    id = UUIDPrimaryKeyField()
-    host = models.ForeignKey(Host, on_delete=models.CASCADE)
-    group = models.ForeignKey(Hostgroup, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"{self.host} is assigned to {self.group}"
-    
-class LnkUserToHost(models.Model):
-    id = UUIDPrimaryKeyField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    host = models.ForeignKey(Host, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"User {self.user} has permissions to {self.host}"
-    
-class LnkGroupToHost(models.Model):
-    id = UUIDPrimaryKeyField()
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    host = models.ForeignKey(Host, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"Group {self.group} has permissions to {self.host}"
-    
-class LnkUserToHostgroup(models.Model):
-    id = UUIDPrimaryKeyField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    hostgroup = models.ForeignKey(Hostgroup, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"User {self.user} has permissions to {self.hostgroup}"
-    
-class LnkGroupToHostgroup(models.Model):
-    id = UUIDPrimaryKeyField()
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    hostgroup = models.ForeignKey(Hostgroup, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f"Group {self.group} has permissions to {self.hostgroup}"
-    
+        return str(self.name)
