@@ -1,9 +1,11 @@
 {
     "recommendations": [
         "ms-python.vscode-pylance",
-        "ms-python.python",
         "visualstudioexptteam.vscodeintellicode",
         "github.copilot-labs",
-        "GitHub.copilot-nightly"
+        "github.copilot-nightly",
+        "humao.rest-client",
+        "njpwerner.autodocstring",
+        "KevinRose.vsc-python-indent"
     ]
 }

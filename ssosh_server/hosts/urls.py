@@ -1,9 +1,8 @@
 # hosts/urls.py
-from django.urls import path
+from django.urls import path, re_path
+from ssosh_server.hosts import views as host_views
 
 urlpatterns = [
-    # path("^device$", auth_views.init, name="auth_device_init"),
-    # path("^device/callback$", auth_views.callback, name="auth_device_callback"),
-    # path("^principals$", auth_views.get_principals, name="auth_principals"),
-    # path("^ca_pubkey$", auth_views.get_certificate, name="auth_ca_pubkey")
+    re_path(r"^bootstrap/?", host_views.bootstrap, name="host_bootstrap"),
+    re_path(r"^config/(?P<hostname>[a-zA-Z0-9-]+)/?", host_views.config, name="host_config")
 ]

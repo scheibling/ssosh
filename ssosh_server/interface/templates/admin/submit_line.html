@@ -1,0 +1,10 @@
+{% extends "admin/submit_line.html" %}
+{% load i18n admin_urls static admin_modify jazzmin %}
+{% block extra-actions %}
+    {{ block.super }}
+    {% if original %}
+        <div class="form-group">
+            <a href="{% url 'client_deauthorize' original.pk %}"><button type="button" class="btn btn-danger form-control" >{% trans 'Deauthorize' %}</button></a>
+        </div>
+    {% endif %}
+{% endblock %}

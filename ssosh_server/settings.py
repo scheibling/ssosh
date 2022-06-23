@@ -9,89 +9,114 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
-from pathlib import Path
-import environ
 import os
+import environ
+from pathlib import Path
+from sshkey_tools.keys import PrivateKey
+##
+# Django settings
+##
+DEBUG = True
 
 env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-LOGIN_REDIRECT_URL = '/success'
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Europe/Stockholm'
 
 DEBUG = env('DEBUG', default=False)
 BASE_URL = env('BASE_URL', default='http://localhost:8000')
-# X_FORWARDED_PROTO read for rProxy support
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY', default='i_am_an_insecure_key_please_change_me_as_soon_as_possible')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-BASE_URL = env('BASE_URL', default='http://localhost:8000')
-#ALLOWED_HOSTS = env('APP_HOSTNAME', default=['*'])
 ALLOWED_HOSTS = ['*']
-
-#USR_LOGIN_REDIRECT_URL
-#ADM_LOGIN_REDIRECT_URL
-#LOGOUT_REDIRECT_URL
-
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
+
+##
+# Application settings
+##
+
+##
+# OpenID Connect
+##
+LOGIN_REDIRECT_URL = '/success'
 OIDC_AUTH_SERVER = env('OIDC_AUTH_SERVER')
 OIDC_AUTH_CLIENT_ID = env('OIDC_AUTH_CLIENT_ID')
 OIDC_AUTH_CLIENT_SECRET = env('OIDC_AUTH_CLIENT_SECRET')
-OIDC_AUTH_SCOPE = env('OIDC_AUTH_SCOPE', default="openid").split(",")
-# Default: django_auth_oidc:get_user_by_username
-# Function to map sub to user object in django
+OIDC_AUTH_SCOPE = env('OIDC_AUTH_SCOPE', default="openid,profile").split(",")
 # OIDC_GET_USER_FUNCTION = ""
-# Default: None
 # OIDC_AUTH_PROTOCOL = facebook/github/gitlab
-SSH_HOST_CONFIGURATION_SECRET = env('CONFIGURATION_SERCRET', default='default-secret')
 
-SSH_CA_CERT_PATH = env('SSH_CA_CERT_PATH', default='ssh_ca')
-SSH_CA_CERT_PASSWORD = env('SSH_CA_CERT_PASSWORD', default='')
-SSH_CA_ROTATION = env('SSH_CA_ROTATION', default=24)
-SSH_CA_CERT_VALIDITY = env('SSH_CA_CERT_VALIDITY', default=8)
-SSH_CA_CERT_SUBJECT_OIDC = env('SSH_CA_CERT_SUBJECT_OIDC', default='sub')
-SSH_CA_CERT_SUBJECT_SAML = env('SSH_CA_CERT_SUBJECT_SAML', default='samaccountname')
-SSH_CA_CERT_SUBJECT_BUILTIN = env('SSH_CA_CERT_SUBJECT_BUILTIN', default='username')
+##
+# Host settings
+##
+HOST_REFRESH_INTERVAL = env('HOST_REFRESH_INTERVAL', default=60)
 
-JAZZMIN_SETTINGS = {
-    "site_title": "SSO Shell",
-    "site_header": "SSO Shell",
-    "site_brand": "SSO Shell",
-    "changeform_format": "collapsible"
+
+##
+# Certificate Authority settings
+##
+SSH_CA = PrivateKey.from_file(
+    env('SSH_CA_KEY_PATH', default='ssh_ca'),
+    env('SSH_CA_KEY_PASSWORD', default=None)
+)
+
+SSH_CA_KEYID_IDENTIFIER = env('SSH_CA_KEYID_IDENTIFIER', default='username')
+
+SSH_CA_DEFAULT_VALIDITY = {
+    "hours": 8
 }
+
+SSH_CA_DEFAULT_EXTENSIONS = [
+    'permit-agent-forwarding',
+    'permit-X11-forwarding'
+]
+
+SSH_CA_DEFAULT_CRITICAL_OPTIONS = []
+
+SSH_CA_SCOPES = {
+    'client.bootstrap': {
+        'requires_admin': False,
+        'requires_staff': True
+    },
+    'client.login': {
+        'requires_admin': False,
+        'requires_staff': False
+    },
+    'client.certificate': {
+        'requires_admin': False,
+        'requires_staff': False
+    },
+    'host.bootstrap': {
+        'requires_admin': True,
+        'requires_staff': False
+    }
+}
+
+# SSH_CA = PrivateKey.from_string(
+#     key_string,
+#     password,
+#     encoding
+# )
+
+# SSH_CA = PrivateKey.from_class(
+#     cryptography.hazmat.asymmetric.x.y.XYPrivateKey
+# )
+
+
 # Application definition
-# AUTH_USER_MODEL = 'interface.User'
 INSTALLED_APPS = [
-    # 'jet',
-    #'bootstrap_admin',
-    # 'django-material',
-    # 'django-suit',
-    # 'django-baton',
-    # 
-    # 'admin_volt.apps.AdminVoltConfig', Looks good, needs some configuration https://github.com/app-generator/django-admin-volt
-    # 'semantic_admin', #Looks really good, no configuration almost https://globophobe.github.io/django-semantic-admin/
-    'jazzmin', # Better overview except for tabbed settings pages, no configuration https://github.com/farridav/django-jazzmin
+    'jazzmin',
     'ssosh_server.oidc_client',
     'ssosh_server.interface',
     'ssosh_server.hosts',
     'ssosh_server.device_auth',
-    # 'ssosh_server.authority',
-    # 'ssosh_server.device_auth',
-    # 'ssosh_server.ssh_ca',
+    'ssosh_server.client',
+    'ssosh_server.authority',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -148,39 +173,50 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    # },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'ssosh_server', 'static')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+JAZZMIN_SETTINGS = {
+    "site_title": "SSO Shell",
+    "site_header": "SSO Shell",
+    "site_brand": "SSO Shell",
+    "changeform_format": "collapsible",
+    "show_ui_builder": False
+}
+
+JAZZMIN_UI_TWEAKS = {
+    # "brand_colour": "navbar-blue",
+    # # "accent": "accent-white",
+    # "navbar": "navbar-dark",
+    # "theme": "darkly",
+    "sidebar": "sidebar-dark-blue",
+    "sidebar_nav_flat_style": True
+}

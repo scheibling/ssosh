@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div class="row">
+    <div class="card ml-5">
+        <div class="card-header">
+            Deauthorize device?
+        </div>
+        <div class="card-body">
+            <form class="mb-1" action="" method="POST">
+                <div class="form-group">
+                {% csrf_token %}
+                <p>Are you sure you want to deauthorize this device from your account? <br />
+                    ID: {{ device.id }} <br />
+                    Name: {{ device.hostname }} <br />
+                    IP Address: {{ device.ip }} <br />
+                </p>
+                    <input type="hidden" name="device_id" value="{{ device.id }}" />
+                    <input type="hidden" name="action" value="deauthorize_client" />
+                    <input type="submit" class="form-control bg-danger" name="deauthorize" value="Deauthorize" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

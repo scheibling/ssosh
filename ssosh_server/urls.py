@@ -43,8 +43,8 @@ urlpatterns = [
     path('', ssosh_views.IndexView),
     
     # /(login|logout) -> delete session
-    path('login', auth_views.LoginView.as_view()),
-    path('logout', auth_views.LogoutView.as_view()),
+    re_path(r'^login/?', auth_views.LoginView.as_view()),
+    # path('logout', auth_views.LogoutView.as_view()),
     path('success', ssosh_views.SuccessView),
     
     # /admin/* -> django.admin
@@ -56,16 +56,18 @@ urlpatterns = [
     # # /auth/* -> ssosh_server.oidc_client
     re_path(r'^auth/', include('ssosh_server.device_auth.urls')),
     
+    # /client/* -> ssosh_server.client
+    re_path(r'^client/', include('ssosh_server.client.urls')),
+    
     # # /host/* -> ssosh_server.hosts
-    # re_path(r'hosts/', include('ssosh_server.hosts.urls'), name='hosts'),
+    re_path(r'^hosts/', include('ssosh_server.hosts.urls'), name='hosts'),
     
     # # /device/* -> ssosh_server.device
     # re_path(r'^device/', include('ssosh_server.device.urls')), 
     
     # # /host/* -> ssosh_server.host
     
-    # # /client/* -> ssosh_server.client
-    # re_path(r'^client/', include('ssosh_server.client.urls'))
+
 ]
 # admin.autodiscover()
 

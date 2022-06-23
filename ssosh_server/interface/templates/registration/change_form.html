@@ -1,0 +1,12 @@
+{% extends "admin/change_form.html" %}
+{% block submit_buttons_bottom %}
+    <p>HELLOOOOUUUU</p>
+    {{ block.super }}
+    {% if original %} {# Only show if changing #}
+        <div class="submit-row">
+            <a href="{% url 'deauthorize_device' original.pk %}">
+                 Another action
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}

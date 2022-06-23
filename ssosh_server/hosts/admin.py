@@ -9,7 +9,8 @@ class HostAdmin(admin.ModelAdmin):
         ("Host Settings", {
             "fields": (
                 "id",
-                "hostname"
+                "hostname",
+                "key"
             )
         }),
         ("Hostgroups", {
@@ -26,7 +27,7 @@ class HostAdmin(admin.ModelAdmin):
     ]
 
     list_display = ['hostname']
-    readonly_fields = ['id']
+    readonly_fields = ['id', 'key']
     filter_horizontal = ['userlink', "grouplink", "hostgrouplink"]
 
 class HostgroupAdmin(admin.ModelAdmin):
