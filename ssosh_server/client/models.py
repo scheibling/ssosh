@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+from django.urls import reverse
 from uuid import uuid4 as gen_uuid
 from secrets import token_urlsafe
 from django.contrib.auth.models import User
@@ -21,3 +23,11 @@ class Device(models.Model):
 
     def __str__(self):
         return f"{self.hostname} ({self.ip}) - {self.userlink.username}"
+    
+    def get_client_config(self) -> str:
+        return {
+            'hostname': self.hostname,
+            'key': self.key,
+            'base_url': settings.BASE_URL,
+            'ca_pubkey': settings.SSH_CA.public_key.to_string()
+        }

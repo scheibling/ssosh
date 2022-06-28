@@ -5,7 +5,8 @@ from ssosh_server.client import views as client_views
 urlpatterns = [
     # Require token authentication
     # Adds client to user
-    # path("^bootstrap$", client_views.bootstrap, name="client_bootstrap"),
+    path("bootstrap/", client_views.bootstrap, name="client_bootstrap"),
+    path("config/", client_views.config, name="client_config"),
     
     # Deauthorize client
     path("deauthorize/<str:ident>", client_views.deauthorize, name="client_deauthorize"),

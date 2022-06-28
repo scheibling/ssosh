@@ -106,3 +106,5 @@ def callback(request: WSGIRequest):
             return HttpResponseBadRequest('The authentication attempt was unsuccessful. Please try again.')
         
         return JsonResponse(token.getResponse())
+    
+    return HttpResponse('[]', content_type='application/json', status=418)

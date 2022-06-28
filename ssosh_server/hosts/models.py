@@ -57,12 +57,12 @@ class Host(models.Model):
     
     def get_host_config(self) -> str:
         return {
+            'hostname': str(self.hostname),
             'config_url': settings.BASE_URL + reverse('host_config', kwargs={"hostname": self.hostname}),
             'principals': self.get_allowed_principals(),
             'ca_pubkey': settings.SSH_CA.public_key.to_string(),
-            'hostname': str(self.hostname),
             'key': str(self.key),
-            'refresh_int': settings.HOST_REFRESH_INTERVAL
+            'interval': settings.HOST_REFRESH_INTERVAL
         }
         
         

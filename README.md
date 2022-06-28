@@ -1,13 +1,11 @@
-# ssosh
+# SSOSh-server
 SSO Shell, an easy solution to implement PAM for OpenSSH
 
-# Todo
-- Client certificate issuing
-  - /client/certificate (token, pubkey) -> Issue certificate
-    - 
-    - 
-
-
+# Documentation
+[docs.ssosh.io](docs.ssosh.io)
 # Future features
-- Separate permissions for bootstrapping hosts, clients
 - Real OIDC flow for device auth
+- Limit access to certain accounts on server (principals) server/grp:principal
+- Option to separate hostkey CA from user CA
+- Option to load CA from hardware key
+- Option to 

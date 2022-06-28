@@ -28,7 +28,7 @@ class DeviceAuthRequest(models.Model):
         self, 
         auth_url,
         callback_url,
-        interval: int = 5, 
+        interval: int = 1, 
     ):
         return {
             'auth_url': f"{auth_url}?code={self.code}",

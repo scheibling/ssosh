@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse
+from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse, HttpResponseNotAllowed
 from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -13,26 +13,44 @@ from ssosh_server.authority.models import SSHCertificate, CertTypes
 from ssosh_server.authority.utils import is_valid_pubkey, get_user_principals
 from django.utils import timezone
 
+@csrf_exempt
+@device_token_required('client.bootstrap')
+def bootstrap(request: WSGIRequest, user: User):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(f'Invalid request method ({request.method})')
 
-def deauthorize(request: WSGIRequest, ident: str):
-    device = Device.objects.get(id=ident)
+    hostname = request.POST.get('hostname', None)
     
-    if (
-        device and 
-        (
-            device.userlink.id == request.user.id or
-            request.user.is_superuser
+    if not hostname:
+        return HttpResponseBadRequest('Invalid hostname')
+
+    hostname = hostname.upper()
+
+    try:
+        device: Device = Device.objects.get(hostname=hostname, userlink=user)
+    except Device.DoesNotExist:
+        device = Device(
+            hostname=hostname,
+            ip=request.META.get('REMOTE_ADDR'),
+            userlink=user,
         )
-    ):        
-        if request.method == 'POST':
-            device.active = False
-            device.save()
-            
-            return redirect('/admin/client/device')
+        device.save()
 
-        return render(request, 'admin/confirm_deauth.html', context={'device': device})        
+    return JsonResponse(
+        device.get_client_config()
+    )
+    
+@csrf_exempt
+@device_key_required()
+def config(request: WSGIRequest, device: Device):
+    if device.ip != request.META.get('REMOTE_ADDR'):
+        device.ip = request.META.get('REMOTE_ADDR')
+        device.save()
 
-    return  HttpResponseBadRequest('Invalid request')
+    return JsonResponse(
+        device.get_client_config()
+    )
+
 
 @csrf_exempt
 @device_key_required()
@@ -54,3 +72,23 @@ def issue_certificate(request: WSGIRequest, device: Device, user: User):
     cert.save()
 
     return HttpResponse(cert.create_certificate(settings.SSH_CA))
+
+def deauthorize(request: WSGIRequest, ident: str):
+    device = Device.objects.get(id=ident)
+    
+    if (
+        device and 
+        (
+            device.userlink.id == request.user.id or
+            request.user.is_superuser
+        )
+    ):        
+        if request.method == 'POST':
+            device.active = False
+            device.save()
+            
+            return redirect('/admin/client/device')
+
+        return render(request, 'admin/confirm_deauth.html', context={'device': device})        
+
+    return HttpResponseBadRequest('Invalid request')
